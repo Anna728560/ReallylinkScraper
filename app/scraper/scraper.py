@@ -3,8 +3,10 @@ from dataclasses import dataclass
 
 from selenium import webdriver
 from selenium.common import NoSuchElementException
+from selenium.webdriver import ActionChains
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
 
 
 @dataclass
@@ -14,7 +16,7 @@ class Item:
     region: str
     address: str
     description: str
-    # img_array: list
+    img_array: list
     # date: str
     price: str
     count_room: dict
@@ -27,6 +29,7 @@ class WebScraperService:
     def __init__(self) -> None:
         self.options = Options()
         self.driver = webdriver.Chrome(options=self._add_options())
+        self.action_chains = ActionChains(self.driver)
 
     def _add_options(self) -> Options:
         # self.options.add_argument("--headless")
@@ -53,7 +56,7 @@ class WebScraperService:
                     "href"
                 )
                 links.append(link_to_ad)
-                # if len(links) == 30:
+                # if len(links) == 60:
                 if len(links) == 5:
                     return links
 
@@ -81,7 +84,7 @@ class WebScraperService:
             address=address,
             price=self._get_price(),
             description=self._get_description(),
-            # img_array=self._get_img_array(),
+            img_array=self._get_img_array(),
             count_room=self._get_rooms(),
             size=self._get_size_sqft(),
         )
@@ -121,9 +124,13 @@ class WebScraperService:
         rooms = {}
         for element in room_elements:
             if "cac" in element.get_attribute("class").split(" "):
-                rooms["bedrooms"] = int(element.text.split()[0])
+                text = element.text.strip()
+                if text:
+                    rooms["bedrooms"] = int(text.split()[0])
             elif "sdb" in element.get_attribute("class").split(" "):
-                rooms["bathrooms"] = int(element.text.split()[0])
+                text = element.text.strip()
+                if text:
+                    rooms["bathrooms"] = int(text.split()[0])
         return rooms
 
     def _get_size_sqft(self):
@@ -140,6 +147,7 @@ class WebScraperService:
 
         img_links = []
 
+        time.sleep(2)
         description = self.driver.find_element(
             By.CSS_SELECTOR, "div.description > strong"
         ).text
@@ -151,6 +159,10 @@ class WebScraperService:
         img_links.append(current_img.get_attribute("src"))
 
         while len(img_links) < total_images:
-            pass
+            self.action_chains.send_keys(Keys.ARROW_RIGHT).perform()
+            current_img = self.driver.find_element(
+                By.CSS_SELECTOR, 'img[src*="mediaserver.realtylink.org"]'
+            )
+            img_links.append(current_img.get_attribute("src"))
 
         return img_links
