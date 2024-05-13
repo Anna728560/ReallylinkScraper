@@ -9,7 +9,7 @@ class Item:
     address: str
     description: str
     img_array: list
-    # date: str
+    date: str
     price: str
     count_room: dict
     size: str

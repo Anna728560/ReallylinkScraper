@@ -2,7 +2,7 @@ import time
 from typing import List, Union, Dict
 
 from selenium import webdriver
-from selenium.common import NoSuchElementException
+from selenium.common import NoSuchElementException, TimeoutException
 from selenium.webdriver import ActionChains
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
@@ -27,7 +27,7 @@ class PageScraper:
         self.action_chains = ActionChains(self.driver)
 
     def _add_options(self) -> Options:
-        self.options.add_argument("--headless")
+        # self.options.add_argument("--headless")
         self.options.add_argument(
             "user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
             "AppleWebKit/537.36 (KHTML, like Gecko) "
@@ -54,7 +54,6 @@ class PageScraper:
                     "href"
                 )
                 links.append(link_to_ad)
-                # if len(links) == 60:
                 if len(links) == 60:
                     return links
 
@@ -80,7 +79,7 @@ class ItemScraper(PageScraper):
         )
 
         address = self._get_address()
-        region = address.split(",")[-1]
+        region = ",".join(address.split(",")[-2:]).strip()
 
         return Item(
             link_to_ad=link,
@@ -89,6 +88,7 @@ class ItemScraper(PageScraper):
             address=address,
             price=self._get_price(),
             description=self._get_description(),
+            date="recently",
             count_room=self._get_rooms(),
             size=self._get_size_sqft(),
             img_array=self._get_img_array(),
@@ -111,8 +111,9 @@ class ItemScraper(PageScraper):
                 By.CSS_SELECTOR,
                 "div.price-container > div.price.text-right > span:nth-child(6)",
             )
-            .text.replace("$", "")
-            .replace(",", ".")
+            .text.replace(
+                ",", "."
+            )
             .split(" ")[0]
         )
 
@@ -151,32 +152,37 @@ class ItemScraper(PageScraper):
         return self.driver.find_element(
             By.CSS_SELECTOR,
             "div.col-lg-12.description > div:nth-child(6) > div:nth-child(1) > div.carac-value > span",
-        ).text
+        ).text.replace(
+            ",", "."
+        )
 
-    def _get_img_array(self) -> List[str]:
+    def _get_img_array(self) -> Union[List[str], None]:
         """
         Get the array of images
         """
-        first_image = self.driver.find_element(
-            By.CSS_SELECTOR, "div.primary-photo-container > a"
-        )
-        first_image.click()
-
-        img_links = []
-
-        WebDriverWait(self.driver, 2).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, "div.description > strong"))
-        )
-        description = self.driver.find_element(
-            By.CSS_SELECTOR, "div.description > strong"
-        ).text
-        total_images = int(description.split("/")[1])
-
-        while len(img_links) < total_images:
-            current_img = self.driver.find_element(
-                By.CSS_SELECTOR, 'img[src*="mediaserver.realtylink.org"]'
+        try:
+            first_image = self.driver.find_element(
+                By.CSS_SELECTOR, "div.primary-photo-container > a"
             )
-            img_links.append(current_img.get_attribute("src"))
-            self.action_chains.send_keys(Keys.ARROW_RIGHT).perform()
+            first_image.click()
 
-        return img_links
+            img_links = []
+
+            WebDriverWait(self.driver, 2).until(
+                EC.presence_of_element_located((By.CSS_SELECTOR, "div.description > strong"))
+            )
+            description = self.driver.find_element(
+                By.CSS_SELECTOR, "div.description > strong"
+            ).text
+            total_images = int(description.split("/")[1])
+
+            while len(img_links) < total_images:
+                current_img = self.driver.find_element(
+                    By.CSS_SELECTOR, 'img[src*="mediaserver.realtylink.org"]'
+                )
+                img_links.append(current_img.get_attribute("src"))
+                self.action_chains.send_keys(Keys.ARROW_RIGHT).perform()
+
+            return img_links
+        except TimeoutException:
+            return None

@@ -1,32 +1,49 @@
 # RealtlylinkScraper
 
-## Task:
-Парсинг інформації з сайту realtylink.org
+Reallylink Scraper is a web scraping tool built in Python using Selenium. It is designed to scrape real estate data from the Reallylink website.
 
-Є сайт з оголошеннями по нерухомості realtylink.org у якого є серп з оголошеннями: Residental: For Rent
+## Installation
 
-Потрібно написати .py скрипт, який сформує JSON, який буде містити: 
-1. 60 оголошень з цього серпа. Кожне оголошення - окремий об'єкт в JSON файлі. 
-2. Кожен об'єкт має містити наступні ключі: 
-- лінк на оголошення
-- тайтл оголошення (https://prnt.sc/6UfLi4VqTb6S) 
-- регіон (https://prnt.sc/hYHrPfPAHG6v) 
-- адресу (https://prnt.sc/tYIR1d7th1cw) 
-- опис (https://prnt.sc/J_2_jonm6tgc) 
-- масив зображень з оголошення (масив лінків на зображення)
-- дату публікації/оновлення оголошення
-- ціна 
-- к-сть кімнат
-- площа нерухомості  
+1. Clone the repository:
 
-Приклад JSON:
+   ```bash
+    git clone https://github.com/Anna728560/RealtlylinkScraper.git
+   ```
 
+2. Install the required dependencies:
+
+   ```bash
+    pip install -r requirements.txt
+   ```
+
+## Usage
+
+To scrape real estate data from Reallylink, run the `main_parse.py` script:
+
+   ```bash
+      python main_parse.py
+   ```
+
+## Result 
+
+The result will be a list of 60 advertisements. Each advertisement is a separate object in a JSON file.
+
+Example:
+
+```
 [
-  {
-    "title": "House for sale",
-    "region": " Downtown PG, Prince George ",
-     "address" :  "207 1499 6 Avenue, Downtown PG"
+   {
+     "link_to_ad": "https://reallylink.com/123",
+     "title": "House for rent",
+     "region": "West End VW, Vancouver",
+     "address": "111 1540 Haro Street, West End VW, Vancouver",
+     "description": "This beautiful house features...",
+     "img_array": ["https://reallylink.com/image1.jpg", "https://reallylink.com/image2.jpg"],
+     "data": "recently"
+     "price": "$250,000",
+     "count_room": {"bedrooms": 3, "bathrooms": 2},
+     "size": "2000 sqft"
+    },
     ...
-  },
-  ...
 ]
+```
