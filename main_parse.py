@@ -2,14 +2,17 @@ import time
 from dataclasses import dataclass, fields
 
 from selenium import webdriver
+from selenium.common import NoSuchElementException
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
+
+from writter import CSVFileWriter
 
 
 @dataclass
 class Item:
     link_to_ad: str
-    # title: str
+    title: str
     # region: str
     # address: str
     # description: str
@@ -62,13 +65,35 @@ class WebScraperService:
             next_page_element.click()
             time.sleep(1)
 
+    def parse_single_item_by_link(self, link):
+        driver = self.driver
+        self.driver.get(link)
+
+        title = driver.find_element(By.CSS_SELECTOR, 'h1 [data-id="PageTitle"]').text
+
+        return Item(
+            link_to_ad=link,
+            title=title if title else None
+        )
+
 
 def get_all_items():
     scraper = WebScraperService()
+    all_items = []
     links = scraper.get_all_items()
-    print(links)
-    print(len(links))
+    for link in links:
+        item = scraper.parse_single_item_by_link(link)
+        all_items.append(item)
+
+    return all_items
 
 
 if __name__ == "__main__":
-    get_all_items()
+    items = get_all_items()
+    file_writer = CSVFileWriter(
+           file_name="app_items", column_fields=ITEM_FIELDS
+    )
+    file_writer.write_in_csv_file(data=items)
+
+
+
