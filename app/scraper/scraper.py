@@ -1,5 +1,4 @@
 import time
-from dataclasses import dataclass
 
 from selenium import webdriver
 from selenium.common import NoSuchElementException
@@ -7,20 +6,6 @@ from selenium.webdriver import ActionChains
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
-
-
-@dataclass
-class Item:
-    link_to_ad: str
-    title: str
-    region: str
-    address: str
-    description: str
-    img_array: list
-    # date: str
-    price: str
-    count_room: dict
-    size: str
 
 
 class WebScraperService:
@@ -84,9 +69,9 @@ class WebScraperService:
             address=address,
             price=self._get_price(),
             description=self._get_description(),
-            img_array=self._get_img_array(),
             count_room=self._get_rooms(),
             size=self._get_size_sqft(),
+            img_array=self._get_img_array(),
         )
 
     def _get_title(self):
