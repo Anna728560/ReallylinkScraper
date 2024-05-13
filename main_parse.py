@@ -5,6 +5,7 @@ from selenium import webdriver
 from selenium.common import NoSuchElementException
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.wait import WebDriverWait
 
 from writter import CSVFileWriter
 
@@ -13,8 +14,8 @@ from writter import CSVFileWriter
 class Item:
     link_to_ad: str
     title: str
-    # region: str
-    # address: str
+    region: str
+    address: str
     # description: str
     # img_array: list
     # date: str
@@ -68,12 +69,16 @@ class WebScraperService:
     def parse_single_item_by_link(self, link):
         driver = self.driver
         self.driver.get(link)
-
+        time.sleep(2)
         title = driver.find_element(By.CSS_SELECTOR, 'h1 [data-id="PageTitle"]').text
+        address = driver.find_element(By.CSS_SELECTOR, 'h2[itemprop="address"]').text
+        region = address.split(",")[-1]
 
         return Item(
             link_to_ad=link,
-            title=title if title else None
+            title=title if title else None,
+            region=region if region else None,
+            address=address if address else None,
         )
 
 
