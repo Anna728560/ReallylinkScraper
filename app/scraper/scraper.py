@@ -1,11 +1,10 @@
 import time
-from dataclasses import dataclass, fields
+from dataclasses import dataclass
 
 from selenium import webdriver
 from selenium.common import NoSuchElementException
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
-from writter import CSVFileWriter
 
 
 @dataclass
@@ -22,9 +21,6 @@ class Item:
     size: str
 
 
-ITEM_FIELDS = [field.name for field in fields(Item)]
-
-
 class WebScraperService:
     BASE_URL = "https://realtylink.org/en/properties~for-rent?uc=0"
 
@@ -35,7 +31,9 @@ class WebScraperService:
     def _add_options(self) -> Options:
         # self.options.add_argument("--headless")
         self.options.add_argument(
-            "user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
+            "user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) "
+            "Chrome/58.0.3029.110 Safari/537.3"
         )
 
         return self.options
@@ -156,20 +154,3 @@ class WebScraperService:
             pass
 
         return img_links
-
-
-def get_all_items():
-    scraper = WebScraperService()
-    all_items = []
-    links = scraper.get_all_items()
-    for link in links:
-        item = scraper.parse_single_item_by_link(link)
-        all_items.append(item)
-
-    return all_items
-
-
-if __name__ == "__main__":
-    items = get_all_items()
-    file_writer = CSVFileWriter(file_name="app_items", column_fields=ITEM_FIELDS)
-    file_writer.write_in_csv_file(data=items)
