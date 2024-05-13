@@ -5,8 +5,6 @@ from selenium import webdriver
 from selenium.common import NoSuchElementException
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support.wait import WebDriverWait
-
 from writter import CSVFileWriter
 
 
@@ -21,7 +19,7 @@ class Item:
     # date: str
     price: str
     count_room: dict
-    # size: float
+    size: str
 
 
 ITEM_FIELDS = [field.name for field in fields(Item)]
@@ -49,9 +47,13 @@ class WebScraperService:
         links = []
 
         while True:
-            item_elements = self.driver.find_elements(By.CLASS_NAME, "property-thumbnail-item")
+            item_elements = self.driver.find_elements(
+                By.CLASS_NAME, "property-thumbnail-item"
+            )
             for item_element in item_elements:
-                link_to_ad = item_element.find_element(By.TAG_NAME, "a").get_attribute("href")
+                link_to_ad = item_element.find_element(By.TAG_NAME, "a").get_attribute(
+                    "href"
+                )
                 links.append(link_to_ad)
                 # if len(links) == 30:
                 if len(links) == 5:
@@ -68,7 +70,6 @@ class WebScraperService:
             time.sleep(1)
 
     def parse_single_item_by_link(self, link):
-        driver = self.driver
         self.driver.get(link)
         time.sleep(2)
 
@@ -82,7 +83,9 @@ class WebScraperService:
             address=address,
             price=self._get_price(),
             description=self._get_description(),
-            count_room=self._get_rooms()
+            # img_array=self._get_img_array(),
+            count_room=self._get_rooms(),
+            size=self._get_size_sqft(),
         )
 
     def _get_title(self):
@@ -91,33 +94,32 @@ class WebScraperService:
         ).text
 
     def _get_address(self):
-        return self.driver.find_element(
-            By.CSS_SELECTOR,
-            'h2[itemprop="address"]'
-        ).text
+        return self.driver.find_element(By.CSS_SELECTOR, 'h2[itemprop="address"]').text
 
     def _get_price(self):
-        return self.driver.find_element(
-            By.CSS_SELECTOR,
-            "div.price-container > div.price.text-right > span:nth-child(6)"
-        ).text.replace(
-            "$", ""
-        ).replace(
-            ",", "."
-        ).split(" ")[0]
+        return (
+            self.driver.find_element(
+                By.CSS_SELECTOR,
+                "div.price-container > div.price.text-right > span:nth-child(6)",
+            )
+            .text.replace("$", "")
+            .replace(",", ".")
+            .split(" ")[0]
+        )
 
     def _get_description(self):
         try:
             description = self.driver.find_element(
-                By.CSS_SELECTOR,
-                'div.row.description-row > div > div:nth-child(2)'
+                By.CSS_SELECTOR, "div.row.description-row > div > div:nth-child(2)"
             ).text
             return description
         except NoSuchElementException:
             return None
 
     def _get_rooms(self):
-        room_elements = self.driver.find_elements(By.CSS_SELECTOR, "div.col-lg-12.description > div.row.teaser > div")
+        room_elements = self.driver.find_elements(
+            By.CSS_SELECTOR, "div.col-lg-12.description > div.row.teaser > div"
+        )
         rooms = {}
         for element in room_elements:
             if "cac" in element.get_attribute("class").split(" "):
@@ -125,6 +127,35 @@ class WebScraperService:
             elif "sdb" in element.get_attribute("class").split(" "):
                 rooms["bathrooms"] = int(element.text.split()[0])
         return rooms
+
+    def _get_size_sqft(self):
+        return self.driver.find_element(
+            By.CSS_SELECTOR,
+            "div.col-lg-12.description > div:nth-child(6) > div:nth-child(1) > div.carac-value > span",
+        ).text
+
+    def _get_img_array(self):
+        first_image = self.driver.find_element(
+            By.CSS_SELECTOR, "div.primary-photo-container > a"
+        )
+        first_image.click()
+
+        img_links = []
+
+        description = self.driver.find_element(
+            By.CSS_SELECTOR, "div.description > strong"
+        ).text
+        total_images = int(description.split("/")[1])
+
+        current_img = self.driver.find_element(
+            By.CSS_SELECTOR, 'img[src*="mediaserver.realtylink.org"]'
+        )
+        img_links.append(current_img.get_attribute("src"))
+
+        while len(img_links) < total_images:
+            pass
+
+        return img_links
 
 
 def get_all_items():
@@ -140,9 +171,5 @@ def get_all_items():
 
 if __name__ == "__main__":
     items = get_all_items()
-    file_writer = CSVFileWriter(
-           file_name="app_items", column_fields=ITEM_FIELDS
-    )
+    file_writer = CSVFileWriter(file_name="app_items", column_fields=ITEM_FIELDS)
     file_writer.write_in_csv_file(data=items)
-
-
