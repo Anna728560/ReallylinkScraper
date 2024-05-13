@@ -22,7 +22,7 @@ class Item:
             "address": self.address,
             "description": self.description,
             "img_array": self.img_array,
-            # 'date': self.date,
+            "date": self.date,
             "price": self.price,
             "count_room": self.count_room,
             "size": self.size,
