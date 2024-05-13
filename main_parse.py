@@ -16,11 +16,11 @@ class Item:
     title: str
     region: str
     address: str
-    # description: str
+    description: str
     # img_array: list
     # date: str
-    # price: float
-    # count_room: int
+    price: str
+    count_room: dict
     # size: float
 
 
@@ -53,7 +53,8 @@ class WebScraperService:
             for item_element in item_elements:
                 link_to_ad = item_element.find_element(By.TAG_NAME, "a").get_attribute("href")
                 links.append(link_to_ad)
-                if len(links) == 30:
+                # if len(links) == 30:
+                if len(links) == 5:
                     return links
 
             self.click_next_page()
@@ -70,16 +71,60 @@ class WebScraperService:
         driver = self.driver
         self.driver.get(link)
         time.sleep(2)
-        title = driver.find_element(By.CSS_SELECTOR, 'h1 [data-id="PageTitle"]').text
-        address = driver.find_element(By.CSS_SELECTOR, 'h2[itemprop="address"]').text
+
+        address = self._get_address()
         region = address.split(",")[-1]
 
         return Item(
             link_to_ad=link,
-            title=title if title else None,
-            region=region if region else None,
-            address=address if address else None,
+            title=self._get_title(),
+            region=region,
+            address=address,
+            price=self._get_price(),
+            description=self._get_description(),
+            count_room=self._get_rooms()
         )
+
+    def _get_title(self):
+        return self.driver.find_element(
+            By.CSS_SELECTOR, 'h1 [data-id="PageTitle"]'
+        ).text
+
+    def _get_address(self):
+        return self.driver.find_element(
+            By.CSS_SELECTOR,
+            'h2[itemprop="address"]'
+        ).text
+
+    def _get_price(self):
+        return self.driver.find_element(
+            By.CSS_SELECTOR,
+            "div.price-container > div.price.text-right > span:nth-child(6)"
+        ).text.replace(
+            "$", ""
+        ).replace(
+            ",", "."
+        ).split(" ")[0]
+
+    def _get_description(self):
+        try:
+            description = self.driver.find_element(
+                By.CSS_SELECTOR,
+                'div.row.description-row > div > div:nth-child(2)'
+            ).text
+            return description
+        except NoSuchElementException:
+            return None
+
+    def _get_rooms(self):
+        room_elements = self.driver.find_elements(By.CSS_SELECTOR, "div.col-lg-12.description > div.row.teaser > div")
+        rooms = {}
+        for element in room_elements:
+            if "cac" in element.get_attribute("class").split(" "):
+                rooms["bedrooms"] = int(element.text.split()[0])
+            elif "sdb" in element.get_attribute("class").split(" "):
+                rooms["bathrooms"] = int(element.text.split()[0])
+        return rooms
 
 
 def get_all_items():
@@ -99,6 +144,5 @@ if __name__ == "__main__":
            file_name="app_items", column_fields=ITEM_FIELDS
     )
     file_writer.write_in_csv_file(data=items)
-
 
 
