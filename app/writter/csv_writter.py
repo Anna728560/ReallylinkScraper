@@ -8,9 +8,7 @@ class CSVFileWriter:
         self.column_fields = column_fields
 
     def write_in_csv_file(self, data: list) -> None:
-        with open(
-            self.file_name + ".csv", "w", encoding="utf-8", newline=""
-        ) as file:
+        with open(self.file_name + ".csv", "w", encoding="utf-8", newline="") as file:
             writer = csv.writer(file)
             writer.writerow(self.column_fields)
             writer.writerows([astuple(record) for record in data])

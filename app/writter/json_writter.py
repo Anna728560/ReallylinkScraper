@@ -7,7 +7,5 @@ class JSONFileWriter:
 
     def write_in_json_file(self, data: list) -> None:
         serialized_data = [item.to_dict() for item in data]
-        with open(
-            self.file_name + ".json", "w", encoding="utf-8"
-        ) as file:
+        with open(self.file_name + ".json", "w", encoding="utf-8") as file:
             json.dump(serialized_data, file, indent=4)
