@@ -12,9 +12,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
 from app.scraper.models import Item
-
-
-BASE_URL = "https://realtylink.org/en/properties~for-rent?uc=0"
+from app.scraper.constants import BASE_URL, NUM_OF_ADVERTS, ROOM_CLASSES
 
 
 class PageScraper:
@@ -53,7 +51,7 @@ class PageScraper:
                     "href"
                 )
                 links.append(link_to_ad)
-                if len(links) == 60:
+                if len(links) == NUM_OF_ADVERTS:
                     return links
 
             self.click_next_page()
@@ -125,6 +123,24 @@ class ItemScraper(PageScraper):
         except NoSuchElementException:
             return None
 
+    # def _get_rooms(self) -> Dict[str, int]:
+    #     """
+    #     Get the number of rooms
+    #     """
+    #     room_elements = self.driver.find_elements(
+    #         By.CSS_SELECTOR, "div.col-lg-12.description > div.row.teaser > div"
+    #     )
+    #     rooms = {}
+    #     for element in room_elements:
+    #         if "cac" in element.get_attribute("class").split(" "):
+    #             text = element.text.strip()
+    #             if text:
+    #                 rooms["bedrooms"] = int(text.split()[0])
+    #         elif "sdb" in element.get_attribute("class").split(" "):
+    #             text = element.text.strip()
+    #             if text:
+    #                 rooms["bathrooms"] = int(text.split()[0])
+    #     return rooms
     def _get_rooms(self) -> Dict[str, int]:
         """
         Get the number of rooms
@@ -134,14 +150,12 @@ class ItemScraper(PageScraper):
         )
         rooms = {}
         for element in room_elements:
-            if "cac" in element.get_attribute("class").split(" "):
-                text = element.text.strip()
-                if text:
-                    rooms["bedrooms"] = int(text.split()[0])
-            elif "sdb" in element.get_attribute("class").split(" "):
-                text = element.text.strip()
-                if text:
-                    rooms["bathrooms"] = int(text.split()[0])
+            for class_name, room_type in ROOM_CLASSES.items():
+                if class_name in element.get_attribute("class").split(" "):
+                    text = element.text.strip()
+                    if text:
+                        rooms[room_type] = int(text.split()[0])
+                    break
         return rooms
 
     def _get_size_sqft(self) -> str:
