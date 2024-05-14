@@ -10,7 +10,15 @@ Reallylink Scraper is a web scraping tool built in Python using Selenium. It is 
     git clone https://github.com/Anna728560/RealtlylinkScraper.git
    ```
 
-2. Install the required dependencies:
+2. Activate virtual environment:
+
+   ```bash
+    python -m venv .venv
+   .venv/Scripts/activate # or venv/bin/activate
+   ```
+
+
+3. Install the required dependencies:
 
    ```bash
     pip install -r requirements.txt
@@ -21,7 +29,7 @@ Reallylink Scraper is a web scraping tool built in Python using Selenium. It is 
 To scrape real estate data from Reallylink, run the `main_parse.py` script:
 
    ```bash
-      python main_parse.py
+      python app\main_parse.py
    ```
 
 ## Result 

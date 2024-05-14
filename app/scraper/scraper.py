@@ -38,7 +38,6 @@ class PageScraper:
 
     def get_all_items(self) -> List[str]:
         self.driver.get(BASE_URL)
-        time.sleep(2)
         WebDriverWait(self.driver, 2).until(
             EC.presence_of_element_located((By.CLASS_NAME, "property-thumbnail-item"))
         )
