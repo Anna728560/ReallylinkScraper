@@ -123,24 +123,6 @@ class ItemScraper(PageScraper):
         except NoSuchElementException:
             return None
 
-    # def _get_rooms(self) -> Dict[str, int]:
-    #     """
-    #     Get the number of rooms
-    #     """
-    #     room_elements = self.driver.find_elements(
-    #         By.CSS_SELECTOR, "div.col-lg-12.description > div.row.teaser > div"
-    #     )
-    #     rooms = {}
-    #     for element in room_elements:
-    #         if "cac" in element.get_attribute("class").split(" "):
-    #             text = element.text.strip()
-    #             if text:
-    #                 rooms["bedrooms"] = int(text.split()[0])
-    #         elif "sdb" in element.get_attribute("class").split(" "):
-    #             text = element.text.strip()
-    #             if text:
-    #                 rooms["bathrooms"] = int(text.split()[0])
-    #     return rooms
     def _get_rooms(self) -> Dict[str, int]:
         """
         Get the number of rooms
